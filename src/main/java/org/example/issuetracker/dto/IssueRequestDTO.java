@@ -1,8 +1,10 @@
-package com.example.demo;
+package org.example.issuetracker.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.example.issuetracker.enums.IssuePriority;
+import org.example.issuetracker.enums.IssueStatus;
 
 
 public class IssueRequestDTO {

@@ -1,4 +1,4 @@
-package com.example.demo;
+package org.example.issuetracker.enums;
 
 public enum IssueStatus {
 

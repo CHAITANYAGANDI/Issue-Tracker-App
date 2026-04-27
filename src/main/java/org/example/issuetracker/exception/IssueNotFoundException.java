@@ -1,4 +1,4 @@
-package com.example.demo;
+package org.example.issuetracker.exception;
 
 public class IssueNotFoundException extends RuntimeException{
 

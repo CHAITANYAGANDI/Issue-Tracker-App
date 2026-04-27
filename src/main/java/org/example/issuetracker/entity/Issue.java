@@ -1,8 +1,16 @@
-package com.example.demo;
+package org.example.issuetracker.entity;
 
 import jakarta.persistence.*;
+import org.example.issuetracker.enums.IssuePriority;
+import org.example.issuetracker.enums.IssueStatus;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Issue {
 
     @Id
@@ -17,6 +25,22 @@ public class Issue {
 
     @Enumerated(EnumType.STRING)
     private IssuePriority priority;
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 
     public Issue(){
     }

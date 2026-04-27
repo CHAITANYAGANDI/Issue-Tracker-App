@@ -1,6 +1,11 @@
-package com.example.demo;
+package org.example.issuetracker.controller;
 
 import jakarta.validation.Valid;
+import org.example.issuetracker.dto.IssueRequestDTO;
+import org.example.issuetracker.dto.IssueResponseDTO;
+import org.example.issuetracker.enums.IssuePriority;
+import org.example.issuetracker.enums.IssueStatus;
+import org.example.issuetracker.service.IssueService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/issues")
+@RequestMapping("/api/v1/issues")
 public class IssueController {
 
     private final IssueService issueService;
@@ -23,7 +28,7 @@ public class IssueController {
     @PostMapping
     public ResponseEntity<IssueResponseDTO> createIssue(@Valid @RequestBody IssueRequestDTO requestDTO){
 
-        IssueResponseDTO createdIssue = issueService.createIssue(requestDTO);
+       IssueResponseDTO createdIssue = issueService.createIssue(requestDTO);
 
         return new ResponseEntity<>(createdIssue, HttpStatus.CREATED);
     }

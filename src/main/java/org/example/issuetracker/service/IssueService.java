@@ -1,16 +1,32 @@
-package com.example.demo;
+package org.example.issuetracker.service;
 
+import org.example.issuetracker.dto.IssueRequestDTO;
+import org.example.issuetracker.dto.IssueResponseDTO;
+import org.example.issuetracker.entity.Issue;
+import org.example.issuetracker.enums.IssuePriority;
+import org.example.issuetracker.enums.IssueStatus;
+import org.example.issuetracker.exception.IssueNotFoundException;
+import org.example.issuetracker.repository.IssueRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class IssueService {
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id",
+            "title",
+            "status",
+            "priority"
+    );
 
     private final IssueRepository issueRepository;
 
@@ -19,6 +35,7 @@ public class IssueService {
         this.issueRepository = issueRepository;
     }
 
+    @Transactional
     public IssueResponseDTO createIssue(IssueRequestDTO requestDTO){
 
         Issue issue = new Issue(requestDTO.getTitle(),
@@ -31,6 +48,7 @@ public class IssueService {
         return convertToResponseDto(savedIssue);
     }
 
+    @Transactional(readOnly = true)
     public List<IssueResponseDTO> getAllIssues(){
 
 
@@ -40,6 +58,7 @@ public class IssueService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<IssueResponseDTO> getIssuesByStatus(IssueStatus status){
 
         return issueRepository.findByStatus(status)
@@ -48,6 +67,7 @@ public class IssueService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<IssueResponseDTO> getIssuesByPriority(IssuePriority priority){
 
         return issueRepository.findByPriority(priority)
@@ -56,6 +76,7 @@ public class IssueService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<IssueResponseDTO> searchIssuesByTitle(String keyword){
 
         return issueRepository.findByTitleContainingIgnoreCase(keyword)
@@ -64,6 +85,7 @@ public class IssueService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly=true)
     public IssueResponseDTO getIssueById(Long id){
 
         Issue issue = issueRepository.findById(id).orElseThrow(() -> new IssueNotFoundException("Issue not found with id: "+id));
@@ -72,6 +94,7 @@ public class IssueService {
     }
 
 
+    @Transactional
     public IssueResponseDTO updateIssueById(Long id, IssueRequestDTO updatedIssue){
 
         Issue existingIssue = issueRepository.findById(id).
@@ -90,12 +113,12 @@ public class IssueService {
 
     }
 
+    @Transactional
     public void deleteIssueById(Long id){
 
-        if(!issueRepository.existsById(id)){
+        Issue existingIssue = issueRepository.findById(id).
+                orElseThrow(() -> new IssueNotFoundException("Issue not found with id: "+ id));
 
-            throw new IssueNotFoundException("Issue not found with id: "+id);
-        }
 
         issueRepository.deleteById(id);
 
@@ -108,11 +131,52 @@ public class IssueService {
                 issue.getTitle(),
                 issue.getDescription(),
                 issue.getStatus(),
-                issue.getPriority());
+                issue.getPriority(),
+                issue.getCreatedAt(),
+                issue.getUpdatedAt());
 
     }
 
-    public Page<IssueResponseDTO> getAllIssuesWithPagination(int page, int size, String sortBy, String sortDir){
+    private void validateSortField(String sortBy){
+
+        if(sortBy == null || sortBy.isBlank()){
+
+            throw new IllegalArgumentException("Sort field cannot be empty");
+        }
+
+        if(!ALLOWED_SORT_FIELDS.contains(sortBy)){
+
+            throw new IllegalArgumentException(
+                    "Invalid sort field: " + sortBy + ". Allowed fields are: " + ALLOWED_SORT_FIELDS
+            );
+        }
+    }
+
+    private void validateSortDirection(String sortDir){
+
+        if(sortDir == null || sortDir.isBlank()){
+
+            throw new IllegalArgumentException("Sort direction cannot be empty");
+        }
+
+        if(!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")){
+
+            throw new IllegalArgumentException(
+                    "Invalid sort direction: " + sortDir + ". Allowed values are: asc, desc"
+            );
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<IssueResponseDTO> getAllIssuesWithPagination(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+
+        validateSortField(sortBy);
+        validateSortDirection(sortDir);
 
         Sort sort;
 
