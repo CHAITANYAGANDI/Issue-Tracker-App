@@ -1,5 +1,7 @@
 package org.example.issuetracker.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.issuetracker.dto.IssueRequestDTO;
 import org.example.issuetracker.dto.IssueResponseDTO;
@@ -15,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/issues")
+@Tag(name = "Issues", description = "APIs for creating, updating, deleting, searching, and filtering issues")
 public class IssueController {
 
     private final IssueService issueService;
@@ -25,6 +28,7 @@ public class IssueController {
 
     }
 
+    @Operation(summary = "Create a new issue")
     @PostMapping
     public ResponseEntity<IssueResponseDTO> createIssue(@Valid @RequestBody IssueRequestDTO requestDTO){
 
@@ -33,6 +37,7 @@ public class IssueController {
         return new ResponseEntity<>(createdIssue, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Get all issues with pagination and sorting")
     @GetMapping
     public ResponseEntity<Page<IssueResponseDTO>> getAllIssues(
 
@@ -92,5 +97,38 @@ public class IssueController {
         List<IssueResponseDTO> issues = issueService.searchIssuesByTitle(keyword);
 
         return ResponseEntity.ok(issues);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<IssueResponseDTO> updateIssueStatusById(
+            @PathVariable Long id,
+            @RequestParam IssueStatus status
+    ){
+
+        IssueResponseDTO updateIssue = issueService.updateIssueStatusById(id, status);
+
+        return ResponseEntity.ok(updateIssue);
+    }
+
+    @PatchMapping("/{id}/priority")
+    public ResponseEntity<IssueResponseDTO> updateIssuePriorityById(
+            @PathVariable Long id,
+            @RequestParam IssuePriority priority
+    ){
+        IssueResponseDTO updateIssue = issueService.updateIssuePriorityById(id,priority);
+
+        return ResponseEntity.ok(updateIssue);
+    }
+
+    public ResponseEntity<List<IssueResponseDTO>> filterIssues(
+
+            @RequestParam(required = false) IssueStatus status,
+            @RequestParam(required = false) IssuePriority priority,
+            @RequestParam(required = false) String assignee
+            ){
+
+        List<IssueResponseDTO> issues = issueService.filterIssues(status, priority, assignee);
+
+        return  ResponseEntity.ok(issues);
     }
 }

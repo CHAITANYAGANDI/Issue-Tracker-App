@@ -7,6 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,6 +27,8 @@ public class Issue {
     @Enumerated(EnumType.STRING)
     private IssuePriority priority;
 
+    private LocalDate dueDate;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -34,23 +37,24 @@ public class Issue {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+    private String assignee;
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+    private String reporter;
+
+
 
     public Issue(){
     }
 
-    public Issue(String title, String description, IssueStatus status, IssuePriority priority){
+    public Issue(String title, String description, IssueStatus status, IssuePriority priority, LocalDate dueDate, String assignee, String reporter){
 
         this.title = title;
         this.description = description;
         this.status = status;
         this.priority = priority;
+        this.dueDate = dueDate;
+        this.assignee = assignee;
+        this.reporter = reporter;
 
     }
 
@@ -68,6 +72,30 @@ public class Issue {
 
     public String getDescription() {
         return description;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(String assignee) {
+        this.assignee = assignee;
+    }
+
+    public String getReporter() {
+        return reporter;
+    }
+
+    public void setReporter(String reporter) {
+        this.reporter = reporter;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
     public void setDescription(String description) {
@@ -88,6 +116,14 @@ public class Issue {
 
     public void setPriority(IssuePriority priority) {
         this.priority = priority;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 
 

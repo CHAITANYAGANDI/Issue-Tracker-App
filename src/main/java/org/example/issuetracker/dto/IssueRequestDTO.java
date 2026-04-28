@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import org.example.issuetracker.enums.IssuePriority;
 import org.example.issuetracker.enums.IssueStatus;
 
+import java.time.LocalDate;
+
 
 public class IssueRequestDTO {
 
@@ -23,6 +25,13 @@ public class IssueRequestDTO {
     @NotNull(message = "Priority is required")
     private IssuePriority priority;
 
+    private LocalDate dueDate;
+
+    @Size(max = 100, message = "Assignee must be at most 100 characters")
+    private String assignee;
+
+    @Size(max = 100, message = "Reporter must be at most 100 characters")
+    private String reporter;
 
     public IssueRequestDTO(){
     }
@@ -39,8 +48,32 @@ public class IssueRequestDTO {
         return description;
     }
 
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(String assignee) {
+        this.assignee = assignee;
+    }
+
+    public String getReporter() {
+        return reporter;
+    }
+
+    public void setReporter(String reporter) {
+        this.reporter = reporter;
     }
 
     public IssueStatus getStatus() {
