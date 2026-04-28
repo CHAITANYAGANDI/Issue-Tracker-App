@@ -8,6 +8,8 @@ import org.example.issuetracker.enums.IssueStatus;
 import org.example.issuetracker.exception.IssueNotFoundException;
 import org.example.issuetracker.repository.IssueRepository;
 import org.example.issuetracker.specification.IssueSpecification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class IssueService {
+
+    private static final Logger logger = LoggerFactory.getLogger(IssueService.class);
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
             "id",
@@ -62,6 +66,8 @@ public class IssueService {
 
         if(!ALLOWED_SORT_FIELDS.contains(sortBy)){
 
+            logger.warn("Invalid sort field received: {}", sortBy);
+
             throw new IllegalArgumentException(
                     "Invalid sort field: " + sortBy + ". Allowed fields are: " + ALLOWED_SORT_FIELDS
             );
@@ -77,6 +83,8 @@ public class IssueService {
 
         if(!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")){
 
+            logger.warn("Invalid sort direction received: {}",sortDir);
+
             throw new IllegalArgumentException(
                     "Invalid sort direction: " + sortDir + ". Allowed values are: asc, desc"
             );
@@ -85,6 +93,8 @@ public class IssueService {
 
     @Transactional
     public IssueResponseDTO createIssue(IssueRequestDTO requestDTO){
+
+        logger.info("Creating issue with title: {}", requestDTO.getTitle());
 
         Issue issue = new Issue(requestDTO.getTitle(),
                 requestDTO.getDescription(),
@@ -96,6 +106,7 @@ public class IssueService {
 
         Issue savedIssue = issueRepository.save(issue);
 
+        logger.info("Issue created successfully with id: {}", savedIssue.getId());
         return convertToResponseDto(savedIssue);
     }
 
@@ -139,7 +150,13 @@ public class IssueService {
     @Transactional(readOnly=true)
     public IssueResponseDTO getIssueById(Long id){
 
-        Issue issue = issueRepository.findById(id).orElseThrow(() -> new IssueNotFoundException("Issue not found with id: "+id));
+        logger.info("Fetching issue with id: {}",id);
+
+        Issue issue = issueRepository.findById(id).
+                orElseThrow(() -> {
+                    logger.warn("Issue not found with id: {}", id);
+                    return new IssueNotFoundException("Issue not found with id: "+id);
+                });
 
         return convertToResponseDto(issue);
     }
@@ -148,8 +165,14 @@ public class IssueService {
     @Transactional
     public IssueResponseDTO updateIssueById(Long id, IssueRequestDTO updatedIssue){
 
+        logger.info("Updating issue with id: {}",id);
+
         Issue existingIssue = issueRepository.findById(id).
-                orElseThrow(() -> new IssueNotFoundException("Issue not found with id: "+id));
+                orElseThrow(() -> {
+
+                    logger.warn("Cannot update. Issue not found with id: {}",id);
+                    return new IssueNotFoundException("Issue not found with id: "+id);
+                });
 
 
         existingIssue.setTitle(updatedIssue.getTitle());
@@ -162,6 +185,8 @@ public class IssueService {
 
         Issue savedIssue = issueRepository.save(existingIssue);
 
+        logger.info("Issue update successfully with id: {}", savedIssue.getId());
+
         return convertToResponseDto(savedIssue);
 
 
@@ -170,12 +195,16 @@ public class IssueService {
     @Transactional
     public void deleteIssueById(Long id){
 
+        logger.info("Deleting issue with id: {}", id);
+
         Issue existingIssue = issueRepository.findById(id).
-                orElseThrow(() -> new IssueNotFoundException("Issue not found with id: "+ id));
+                orElseThrow(() -> {
+                    logger.warn("Cannot delete. Issue not found with id: {}",id);
+                    return new IssueNotFoundException("Issue not found with id: "+ id);
+                });
 
-
+        logger.info("Issue deleted successfully with id: {}", id);
         issueRepository.deleteById(id);
-
 
     }
 
@@ -186,6 +215,9 @@ public class IssueService {
             String sortBy,
             String sortDir
     ) {
+
+        logger.info("Fetching issue with pagination. page: {}, size: {}, sortBy; {}, sortDir: {}", page, size
+        ,sortBy,sortDir);
 
         validateSortField(sortBy);
         validateSortDirection(sortDir);
@@ -210,12 +242,20 @@ public class IssueService {
     @Transactional
     public IssueResponseDTO updateIssueStatusById(Long id, IssueStatus status){
 
+        logger.info("Updating issue status. id: {}, status: {}", id,status);
+
         Issue existingIssue = issueRepository.findById(id)
-                .orElseThrow(() -> new IssueNotFoundException("Issue not found with id: "+ id));
+                .orElseThrow(() ->
+                {
+                    logger.warn("Cannot update status. Issue not found with id: {}",id);
+                    return new IssueNotFoundException("Issue not found with id: "+ id);
+                });
 
         existingIssue.setStatus(status);
 
         Issue savedIssue = issueRepository.save(existingIssue);
+
+        logger.info("Issue status updated successfully. id: {}, status:{}", id, status);
 
         return convertToResponseDto(savedIssue);
     }
@@ -223,12 +263,20 @@ public class IssueService {
     @Transactional
     public IssueResponseDTO updateIssuePriorityById(Long id, IssuePriority priority){
 
+        logger.info("Updating issue priority. id: {}, priority: {}",id,priority);
+
         Issue existingIssue = issueRepository.findById(id)
-                .orElseThrow(() -> new IssueNotFoundException("Issue not found with id: "+id));
+                .orElseThrow(() -> {
+
+                    logger.warn("Cannot update priority. Issue not found with id: {}", id);
+                    return new IssueNotFoundException("Issue not found with id: "+id);
+                });
 
         existingIssue.setPriority(priority);
 
         Issue savedIssue = issueRepository.save(existingIssue);
+
+        logger.info("Issue priority updated successfully. id: {}, priority: {}", id, priority);
 
         return convertToResponseDto(savedIssue);
 
@@ -240,6 +288,8 @@ public class IssueService {
             IssuePriority priority,
             String assignee
     ){
+
+        logger.info("Filtering issues. status: {}, priority: {}, assignee: {}", status,priority,assignee);
 
         Specification<Issue> spec = ((root, query, criteriaBuilder) ->
                 criteriaBuilder.conjunction());
