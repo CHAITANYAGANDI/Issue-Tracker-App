@@ -193,19 +193,19 @@ public class IssueService {
     }
 
     @Transactional
-    public void deleteIssueById(Long id){
+    public void deleteIssueById(Long id) {
 
         logger.info("Deleting issue with id: {}", id);
 
-        Issue existingIssue = issueRepository.findById(id).
-                orElseThrow(() -> {
-                    logger.warn("Cannot delete. Issue not found with id: {}",id);
-                    return new IssueNotFoundException("Issue not found with id: "+ id);
+        Issue existingIssue = issueRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("Cannot delete. Issue not found with id: {}", id);
+                    return new IssueNotFoundException("Issue not found with id: " + id);
                 });
 
-        logger.info("Issue deleted successfully with id: {}", id);
-        issueRepository.deleteById(id);
+        issueRepository.delete(existingIssue);
 
+        logger.info("Issue deleted successfully with id: {}", id);
     }
 
     @Transactional(readOnly = true)

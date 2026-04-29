@@ -51,6 +51,8 @@ public class IssueController {
         return ResponseEntity.ok(issues);
     }
 
+
+
     @GetMapping("/{id}")
     public ResponseEntity<IssueResponseDTO> getIssueById(@PathVariable Long id){
 
@@ -73,6 +75,19 @@ public class IssueController {
         issueService.deleteIssueById(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<IssueResponseDTO>> filterIssues(
+
+            @RequestParam(required = false) IssueStatus status,
+            @RequestParam(required = false) IssuePriority priority,
+            @RequestParam(required = false) String assignee
+    ){
+
+        List<IssueResponseDTO> issues = issueService.filterIssues(status, priority, assignee);
+
+        return  ResponseEntity.ok(issues);
     }
 
     @GetMapping("/status/{status}")
@@ -120,15 +135,5 @@ public class IssueController {
         return ResponseEntity.ok(updateIssue);
     }
 
-    public ResponseEntity<List<IssueResponseDTO>> filterIssues(
 
-            @RequestParam(required = false) IssueStatus status,
-            @RequestParam(required = false) IssuePriority priority,
-            @RequestParam(required = false) String assignee
-            ){
-
-        List<IssueResponseDTO> issues = issueService.filterIssues(status, priority, assignee);
-
-        return  ResponseEntity.ok(issues);
-    }
 }
